@@ -1,20 +1,25 @@
 import { Injectable } from '@nestjs/common';
 import OpenAI from 'openai';
 import { configApp } from '@/config/configuration';
-import { CreateInterviewDto } from '../dto/create-interview.dto';
+import { GenerateResponseAssistantDto } from '../dto/create-interview.dto';
 import { AssistantResponse, generateId } from 'ai';
 import { Parameters } from '@/shared/functions/common-functions';
+import { QuestionsService } from '@/questions/questions.service';
+import { ICodeSearch } from '@/questions/dto/code-seatch';
 
 @Injectable()
 export class InterviewsService {
   private openai = new OpenAI({
     apiKey: configApp().api_key_ia,
   });
+
+  constructor(private readonly questionService: QuestionsService) {}
+
   async createTrhead() {
     const { id } = await this.openai.beta.threads.create();
     return id;
   }
-  async runChat(interview: CreateInterviewDto) {
+  async runChat(interview: GenerateResponseAssistantDto) {
     const { threadId, response } = interview;
     const runQueue = [];
 
@@ -43,7 +48,7 @@ export class InterviewsService {
     return messages.reverse();
   }
 
-  async Post(interview: CreateInterviewDto) {
+  async Post(interview: GenerateResponseAssistantDto) {
     const { threadId, response } = interview;
 
     const createdMessage = await this.openai.beta.threads.messages.create(
@@ -94,7 +99,7 @@ export class InterviewsService {
       },
     );
   }
-  async POST(interview: CreateInterviewDto) {
+  async POST(interview: GenerateResponseAssistantDto) {
     // Parse the request body
     const { threadId, response } = interview;
 
@@ -151,7 +156,7 @@ export class InterviewsService {
     );
   }
 
-  async generateResponseAssistant(interview: CreateInterviewDto) {
+  async generateResponseAssistant(interview: GenerateResponseAssistantDto) {
     const { threadId, response, assistant } = interview;
 
     const methodGetAssistant = Parameters.getAssistant(assistant);
@@ -197,5 +202,32 @@ export class InterviewsService {
         }
       },
     );
+  }
+
+  async saveInterview(
+    code: string,
+    interview: any,
+    email: string,
+    qualification: string,
+    comments: string,
+    feedback: string,
+    names: string,
+  ) {
+    const codeDocument = await this.questionService.getCode(code);
+    const interviewFound = await this.questionService.validateCode(code);
+    const saveInterview = await this.questionService.saveInterview(
+      interviewFound._id.toString(),
+      interview,
+      email,
+      qualification,
+      comments,
+      feedback,
+      interviewFound.user,
+      names,
+    );
+    await this.questionService.updateCode(
+      codeDocument as unknown as ICodeSearch,
+    );
+    return saveInterview;
   }
 }

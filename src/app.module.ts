@@ -12,6 +12,7 @@ import { QuestionsModule } from './questions/questions.module';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { InformationInterceptor } from './shared/interceptors/information/information.interceptor';
+import { ReportsModule } from './reports/reports.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { InformationInterceptor } from './shared/interceptors/information/inform
     QuestionsModule,
     UsersModule,
     AuthModule,
+    ReportsModule,
   ],
   controllers: [AppController],
   providers: [

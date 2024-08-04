@@ -7,9 +7,14 @@ export class Parameters {
     return configApp().assistantGeneratorQuestions;
   }
 
+  static getAnalizeInterview(): string {
+    return configApp().assistantQualifier;
+  }
+
   static getAssistant(assistant: Assistant) {
     const assistants = {
       GeneratorQuestionsInterview: () => this.getAssistanGenerateQuestions(),
+      AnalyzeResponsesQuestions: () => this.getAnalizeInterview(),
     };
     return assistants[assistant];
   }

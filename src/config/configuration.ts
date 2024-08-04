@@ -5,6 +5,7 @@ export const configApp = () => ({
   defaultLimit: process.env.DEFAULT_LIMIT || 5,
   api_key_ia: process.env.OPEN_AI_API_KEY,
   assistantInterview: process.env.ASSISTANT_INTERVIEW,
-  assistantGeneratorQuestions: process.env.AGILE_GENERATOR_INTERVIEW,
+  assistantGeneratorQuestions: process.env.ASSISTANT_GENERATOR_INTERVIEW,
   secret_token: process.env.SECRET_KEY,
+  assistantQualifier: process.env.ASSISTANT_QUALIFIER,
 });

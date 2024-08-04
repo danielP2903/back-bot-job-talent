@@ -1,11 +1,10 @@
 import { Controller, Get, Post, Body, Res, UseGuards } from '@nestjs/common';
 import { InterviewsService } from './services/interviews.service';
-import { CreateInterviewDto } from './dto/create-interview.dto';
+import { GenerateResponseAssistantDto } from './dto/create-interview.dto';
 import { Response } from 'express';
 import { ProcessStreamService } from './services/process-stream/process-stream.service';
 import { AuthGuard } from '@/shared/guards/auth/auth.guard';
 
-@UseGuards(AuthGuard)
 @Controller('interviews')
 export class InterviewsController {
   constructor(
@@ -14,7 +13,7 @@ export class InterviewsController {
   ) {}
 
   @Post()
-  async runChat(@Body() payload: CreateInterviewDto) {
+  async runChat(@Body() payload: GenerateResponseAssistantDto) {
     return await this.interviewsService.runChat(payload);
   }
 
@@ -24,7 +23,10 @@ export class InterviewsController {
   }
 
   @Post('math')
-  async runChatMath(@Body() payload: CreateInterviewDto, @Res() res: Response) {
+  async runChatMath(
+    @Body() payload: GenerateResponseAssistantDto,
+    @Res() res: Response,
+  ) {
     const stream = await this.interviewsService.Post(payload);
     const jsonData: { [key: string]: any } = {};
     const st = await stream.text();
@@ -52,12 +54,34 @@ export class InterviewsController {
     res.json(jsonData);
   }
 
+  @UseGuards(AuthGuard)
   @Post('generator-questions')
-  async generateQuestionInterview(@Body() payload: CreateInterviewDto) {
+  async generateQuestionInterview(
+    @Body() payload: GenerateResponseAssistantDto,
+  ) {
     const stream =
       await this.interviewsService.generateResponseAssistant(payload);
 
     const response = await this.streamService.processResponse(stream);
     return response;
+  }
+
+  @Post('qualifier')
+  async qualifierInterview(@Body() payload: GenerateResponseAssistantDto) {
+    const stream =
+      await this.interviewsService.generateResponseAssistant(payload);
+    const result = (await this.streamService.processResponseQualifier(
+      stream,
+    )) as any;
+    await this.interviewsService.saveInterview(
+      payload.codeInterview,
+      payload.interview,
+      payload.email,
+      result.calificacion_global as string,
+      result.comentarios as string,
+      result.feedback as string,
+      payload.names,
+    );
+    return result;
   }
 }
